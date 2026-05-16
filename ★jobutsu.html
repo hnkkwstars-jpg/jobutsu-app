@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>怨念成仏アプリ</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at center, #250000 0%, #070000 45%, #000 100%);
+    color: #ff1a1a;
+    font-family: "Yu Gothic", sans-serif;
+    text-align: center;
+    overflow-x: hidden;
+}
+
+.container {
+    min-height: 100vh;
+    padding: 28px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+h1 {
+    font-size: 36px;
+    letter-spacing: 4px;
+    text-shadow: 0 0 12px red, 0 0 30px darkred;
+    animation: flicker 2s infinite;
+}
+
+.subtitle {
+    margin-bottom: 22px;
+    color: #aa0000;
+    font-size: 14px;
+}
+
+input, textarea {
+    width: min(90vw, 360px);
+    padding: 14px;
+    margin-bottom: 12px;
+    font-size: 17px;
+    color: #ff3333;
+    background: #080000;
+    border: 1px solid #8b0000;
+    border-radius: 8px;
+    outline: none;
+    text-align: center;
+    box-shadow: 0 0 12px #300000 inset;
+}
+
+textarea {
+    height: 90px;
+    resize: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #700000;
+}
+
+button {
+    width: min(90vw, 360px);
+    padding: 15px;
+    margin-top: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #000;
+    background: linear-gradient(180deg, #ff1a1a, #780000);
+    border: 1px solid #ff4444;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 0 18px #8b0000;
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+#result {
+    margin-top: 24px;
+    width: min(92vw, 430px);
+    min-height: 120px;
+    padding: 18px;
+    color: #ffcccc;
+    background: rgba(0,0,0,0.75);
+    border: 1px solid #5a0000;
+    border-radius: 12px;
+    line-height: 1.7;
+    box-shadow: 0 0 20px #260000;
+}
+
+.grave {
+    margin: 20px auto 4px;
+    width: 125px;
+    height: 165px;
+    background: linear-gradient(180deg, #333, #111);
+    border-radius: 60px 60px 10px 10px;
+    border: 2px solid #666;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: #ddd;
+    writing-mode: vertical-rl;
+    font-weight: bold;
+    letter-spacing: 4px;
+    box-shadow: 0 0 25px #000;
+    animation: graveRise 1.2s ease-out forwards;
+}
+
+.shareBtn {
+    display: none;
+    background: linear-gradient(180deg, #222, #000);
+    color: #ff3333;
+    border: 1px solid #7a0000;
+}
+
+.smoke {
+    position: fixed;
+    bottom: -80px;
+    width: 18px;
+    height: 18px;
+    background: rgba(180,180,180,0.28);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: smokeUp 3s linear forwards;
+}
+
+.fire {
+    position: fixed;
+    bottom: 0;
+    width: 16px;
+    height: 34px;
+    background: radial-gradient(circle, #ffff66 0%, #ff3300 45%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: fireUp 1s ease-out forwards;
+}
+
+.screenFlash {
+    animation: screenFlash 0.16s 10;
+}
+
+@keyframes flicker {
+    0%,100% { opacity: 1; }
+    45% { opacity: .7; }
+    48% { opacity: .25; }
+    52% { opacity: 1; }
+    70% { opacity: .55; }
+}
+
+@keyframes screenFlash {
+    0% { background-color: #000; }
+    50% { background-color: #3b0000; }
+    100% { background-color: #000; }
+}
+
+@keyframes smokeUp {
+    0% {
+        transform: translateY(0) scale(.7);
+        opacity: .6;
+    }
+    100% {
+        transform: translateY(-110vh) scale(5);
+        opacity: 0;
+    }
+}
+
+@keyframes fireUp {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-130px) scale(.2);
+        opacity: 0;
+    }
+}
+
+@keyframes graveRise {
+    0% {
+        transform: translateY(80px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>怨念成仏アプリ</h1>
+    <div class="subtitle">名前と罪状を刻め。魂を送れ。</div>
+
+    <input type="text" id="name" placeholder="成仏させたい人の名前">
+
+    <textarea id="reason" placeholder="何をされた？ 例：嘘つかれた、謝らない、チクられた"></textarea>
+
+    <button id="jobutsuBtn">成仏させる</button>
+
+    <div id="result">ここに成仏結果が表示されます。</div>
+
+    <div id="grave" class="grave">成仏済</div>
+
+    <button id="shareBtn" class="shareBtn">LINEで共有する</button>
+</div>
+
+<script>
+const reincarnations = [
+    "来世はシロオオアリクイの餌になる。",
+    "来世はいい人に巡り合えない。",
+    "来世は結婚できない。",
+    "来世は虫になる。",
+    "来世は殺人事件に遭遇しまくる。",
+    "来世はミジンコになる。",
+    "来世は貧乏人になる。",
+    "来世は誰からも必要とされない。"
+];
+
+const kaimyoFirst = ["暗黒院", "怨念院", "無縁院", "地獄院", "成仏院", "虚無院", "業深院", "闇落院"];
+const kaimyoMiddle = ["絶望", "孤独", "未練", "破滅", "迷走", "不憫", "因果", "反省不足"];
+const kaimyoLast = ["居士", "信士", "大姉", "霊位", "亡者", "之墓", "成仏不可", "供養済"];
+
+let shareText = "";
+
+function randomItem(array) {
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+function makeKaimyo() {
+    return randomItem(kaimyoFirst) + randomItem(kaimyoMiddle) + randomItem(kaimyoLast);
+}
+
+function calculateHellRate(reason) {
+    let hellRate = Math.floor(Math.random() * 41) + 30;
+
+    if (reason.includes("浮気")) hellRate += 35;
+    if (reason.includes("嘘")) hellRate += 25;
+    if (reason.includes("既読無視")) hellRate += 15;
+    if (reason.includes("謝らない")) hellRate += 30;
+    if (reason.includes("チク")) hellRate += 40;
+    if (reason.includes("陰口")) hellRate += 35;
+    if (reason.includes("裏切")) hellRate += 35;
+    if (reason.includes("暴言")) hellRate += 35;
+    if (reason.includes("無視")) hellRate += 20;
+    if (reason.includes("モラハラ")) hellRate += 45;
+    if (reason.includes("お金")) hellRate += 25;
+    if (reason.includes("約束")) hellRate += 20;
+
+    if (hellRate > 100) hellRate = 100;
+
+    return hellRate;
+}
+
+function makeJudgement(hellRate) {
+    if (hellRate >= 90) return "即・地獄行き確定";
+    if (hellRate >= 70) return "かなり重めの業を背負っています";
+    if (hellRate >= 50) return "反省が必要な魂です";
+    return "まだ更生の余地があります";
+}
+
+function makeSmoke() {
+    for (let i = 0; i < 22; i++) {
+        const smoke = document.createElement("div");
+        smoke.className = "smoke";
+        smoke.style.left = Math.random() * 100 + "vw";
+        smoke.style.animationDelay = Math.random() * 1.2 + "s";
+        document.body.appendChild(smoke);
+
+        setTimeout(() => smoke.remove(), 3500);
+    }
+}
+
+function makeFire() {
+    for (let i = 0; i < 28; i++) {
+        const fire = document.createElement("div");
+        fire.className = "fire";
+        fire.style.left = Math.random() * 100 + "vw";
+        fire.style.animationDelay = Math.random() * 0.8 + "s";
+        document.body.appendChild(fire);
+
+        setTimeout(() => fire.remove(), 1400);
+    }
+}
+
+function playOtakiageSound() {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    for (let i = 0; i < 8; i++) {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(120 + i * 35, audioContext.currentTime + i * 0.08);
+
+        gain.gain.setValueAtTime(0.08, audioContext.currentTime + i * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + i * 0.08 + 0.35);
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+
+        oscillator.start(audioContext.currentTime + i * 0.08);
+        oscillator.stop(audioContext.currentTime + i * 0.08 + 0.35);
+    }
+}
+
+document.getElementById("jobutsuBtn").addEventListener("click", function() {
+    const name = document.getElementById("name").value.trim();
+    const reason = document.getElementById("reason").value.trim();
+    const result = document.getElementById("result");
+    const grave = document.getElementById("grave");
+    const shareBtn = document.getElementById("shareBtn");
+
+    if (name === "") {
+        alert("名前を入力してください。");
+        return;
+    }
+
+    if (reason === "") {
+        alert("罪状を入力してください。");
+        return;
+    }
+
+    grave.style.display = "none";
+    shareBtn.style.display = "none";
+    result.innerHTML = "お焚き上げ中……";
+
+    document.body.classList.add("screenFlash");
+    makeSmoke();
+    makeFire();
+    playOtakiageSound();
+
+    setTimeout(() => {
+        document.body.classList.remove("screenFlash");
+
+        const reincarnation = randomItem(reincarnations);
+        const kaimyo = makeKaimyo();
+        const hellRate = calculateHellRate(reason);
+        const judgement = makeJudgement(hellRate);
+
+        result.innerHTML =
+            "💀 " + name + " は成仏しました 💀<br><br>" +
+            "罪状：<strong>" + reason + "</strong><br>" +
+            "戒名：<strong>" + kaimyo + "</strong><br>" +
+            "地獄行き確率：<strong>" + hellRate + "%</strong><br>" +
+            "判決：" + judgement + "<br><br>" +
+            reincarnation;
+
+        grave.style.display = "flex";
+        shareBtn.style.display = "block";
+
+        shareText =
+            "【成仏結果】\n" +
+            name + " は成仏しました。\n" +
+            "罪状：" + reason + "\n" +
+            "戒名：" + kaimyo + "\n" +
+            "地獄行き確率：" + hellRate + "%\n" +
+            "判決：" + judgement + "\n" +
+            reincarnation;
+
+    }, 1800);
+});
+
+document.getElementById("shareBtn").addEventListener("click", function() {
+    const encodedText = encodeURIComponent(shareText);
+
+    if (navigator.share) {
+        navigator.share({
+            title: "成仏結果",
+            text: shareText
+        });
+    } else {
+        window.open("https://line.me/R/msg/text/?" + encodedText, "_blank");
+    }
+});
+</script>
+
+</body>
+</html>
